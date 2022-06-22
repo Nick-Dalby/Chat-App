@@ -8,6 +8,7 @@ import {
   ImageBackground,
   TouchableOpacity,
   KeyboardAvoidingView,
+  Platform
 } from 'react-native'
 
 import image from '../assets/Background-Image.png'
@@ -97,7 +98,7 @@ const styles = StyleSheet.create({
   start: {
     width: '88%',
     backgroundColor: '#FFFFFF',
-    height: '44%',
+    
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingBottom: 20,
@@ -136,6 +137,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     elevation: 3,
     width: '88%',
+    marginTop: 20,
+    
   },
   buttonText: {
     fontSize: 16,
