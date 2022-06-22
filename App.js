@@ -15,11 +15,17 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Screen1">
-        <Stack.Screen name="Start" component={Start} />
-        <Stack.Screen name="Chat" component={Chat} />
+        <Stack.Screen
+          name="Start"
+          component={Start}
+          options={{
+            headerTransparent: true, title: ''
+          }}
+        />
+        <Stack.Screen name="Chat" component={Chat}  options={{
+            headerTransparent: true,
+          }}/>
       </Stack.Navigator>
     </NavigationContainer>
   )
 }
-
-
