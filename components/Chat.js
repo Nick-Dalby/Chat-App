@@ -36,7 +36,7 @@ const Chat = ({ navigation, route }) => {
     }
   }
 
-  const saveMessages = async () => {
+  const saveMessages = async (messages) => {
     try {
       await AsyncStorage.setItem('messages', JSON.stringify(messages))
     } catch (error) {
@@ -71,7 +71,7 @@ const Chat = ({ navigation, route }) => {
         console.log('offline')
       }
     })
-
+ 
     // if online query the collection of messages, order them by time, descending
     if (isConnected) {
       const queryMessages = query(messagesRef, orderBy('createdAt', 'desc'))
@@ -83,7 +83,7 @@ const Chat = ({ navigation, route }) => {
       navigation.setOptions({ title: 'offline' })
     }
 
-    // define snapshot listner
+
 
     // sign in
     const unsubUser = auth.onAuthStateChanged(async (user) => {
@@ -111,7 +111,7 @@ const Chat = ({ navigation, route }) => {
       })
     })
     setMessages(messageArray)
-
+    saveMessages(messageArray)
   }
 
   //add messaage from state to firestore
@@ -130,7 +130,7 @@ const Chat = ({ navigation, route }) => {
       GiftedChat.append(previousMessages, messages)
     )
     addMessage(messages[0])
-    saveMessages()
+
   }, [])
 
   const renderBubble = (props) => {
