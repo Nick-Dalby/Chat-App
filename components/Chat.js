@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { View, Platform, KeyboardAvoidingView } from 'react-native'
-import { GiftedChat, Bubble } from 'react-native-gifted-chat'
+import { GiftedChat, Bubble, InputToolbar } from 'react-native-gifted-chat'
 
 import { signInAnonymously } from 'firebase/auth'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import NetInfo from '@react-native-community/netinfo'
 
 import {
   collection,
@@ -15,46 +17,86 @@ import { db, auth } from '../firebase/firebase'
 
 const Chat = ({ navigation, route }) => {
   const [messages, setMessages] = useState([])
-  const [user, setUser] = useState({
-    _id: '',
-    name: '',
-    avatar: '',
-  })
+  const [isConnected, setIsConnected] = useState()
 
   // user name and color pulling in from first screen
   let name = route.params.name
   let color = route.params.color
-  
-  // screen title using users name
-  navigation.setOptions({ title: name })
 
   // reference to the firestore database
   const messagesRef = collection(db, 'messages')
 
+  const getMessages = async () => {
+    let messages = ''
+    try {
+      messages = (await AsyncStorage.getItem('messages')) || []
+      setMessages(JSON.parse(messages))
+    } catch (error) {
+      console.log(error.message)
+    }
+  }
+
+  const saveMessages = async () => {
+    try {
+      await AsyncStorage.setItem('messages', JSON.stringify(messages))
+    } catch (error) {
+      console.log(error.message)
+    }
+  }
+
+  const deleteMessages = async () => {
+    try {
+      await AsyncStorage.removeItem('messages')
+    } catch (error) {
+      console.log(error.message)
+    }
+  }
+
   useEffect(() => {
-    // query the collection of messages, order them by time, descending
-    const queryMessages = query(messagesRef, orderBy('createdAt', 'desc'))
+    // screen title using users name
+    navigation.setOptions({ title: name })
+
+    let unsub
+
+    // saveMessages()
+    // getMessages()
+    // deleteMessages()
+
+    NetInfo.fetch().then((connection) => {
+      if (connection.isConnected) {
+        setIsConnected(true)
+        console.log('online')
+      } else {
+        setIsConnected(false)
+        console.log('offline')
+      }
+    })
+
+    // if online query the collection of messages, order them by time, descending
+    if (isConnected) {
+      const queryMessages = query(messagesRef, orderBy('createdAt', 'desc'))
+      unsub = onSnapshot(queryMessages, onCollectionUpdate)
+      
+      return () => unsub()
+    } else if (isConnected === false) {
+      getMessages()
+      navigation.setOptions({ title: 'offline' })
+    }
+
     // define snapshot listner
-    const unsub = onSnapshot(queryMessages, onCollectionUpdate)
 
     // sign in
     const unsubUser = auth.onAuthStateChanged(async (user) => {
       if (!user) {
         await signInAnonymously(auth)
       }
-      setUser({
-        _id: user.uid,
-        name: name,
-        avatar: 'https://placeimg.com/140/140/any',
-      })
     })
 
     // cleanup: Stop listening to authentication and collection changes
     return () => {
       unsubUser()
-      unsub()
     }
-  }, [])
+  }, [isConnected])
 
   // read the message data from firestore - push it to the message state
   const onCollectionUpdate = (querySnapshot) => {
@@ -69,6 +111,7 @@ const Chat = ({ navigation, route }) => {
       })
     })
     setMessages(messageArray)
+
   }
 
   //add messaage from state to firestore
@@ -81,36 +124,13 @@ const Chat = ({ navigation, route }) => {
     })
   }
 
-  // need to use the system message to notify on chat entry
-
-  // useEffect(() => {
-  //   setMessages([
-  //     {
-  //       _id: 1,
-  //       text: 'Hello ' + name,
-  //       createdAt: new Date(),
-  //       user: {
-  //         _id: 2,
-  //         name: 'React Native',
-  //         avatar: 'https://placeimg.com/140/140/any',
-  //       },
-  //     },
-  //     {
-  //       _id: 2,
-  //       text: name + ' has entered the chat!',
-  //       createdAt: new Date(Date.UTC(2016, 5, 11, 17, 20, 0)),
-  //       system: true,
-  //       // Any additional custom parameters are passed through
-  //     },
-  //   ])
-  // }, [])
-
   //add new messages to state on send
   const onSend = useCallback((messages = []) => {
     setMessages((previousMessages) =>
       GiftedChat.append(previousMessages, messages)
     )
     addMessage(messages[0])
+    saveMessages()
   }, [])
 
   const renderBubble = (props) => {
@@ -126,18 +146,30 @@ const Chat = ({ navigation, route }) => {
     )
   }
 
+  const renderInputToolbar = (props) => {
+    if (!isConnected) {
+    } else {
+      return (
+        <InputToolbar
+          {...props}
+        />
+      );
+    }
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: color }}>
       <GiftedChat
         renderBubble={renderBubble}
+        renderInputToolbar={renderInputToolbar}
         messages={messages}
         // showUserAvatar={true}
         showAvatarForEveryMessage={true}
         onSend={(messages) => onSend(messages)}
         user={{
-          _id: user._id,
+          _id: auth.currentUser?.uid,
           name: name,
-          avatar: user.avatar,
+          avatar: '',
         }}
       />
       {Platform.OS === 'android' ? (
