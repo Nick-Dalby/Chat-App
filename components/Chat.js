@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { View, Platform, KeyboardAvoidingView } from 'react-native'
 import { GiftedChat, Bubble, InputToolbar } from 'react-native-gifted-chat'
 
+import CustomActions from './CustomActions'
+
 import { signInAnonymously } from 'firebase/auth'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import NetInfo from '@react-native-community/netinfo'
@@ -71,19 +73,17 @@ const Chat = ({ navigation, route }) => {
         console.log('offline')
       }
     })
- 
+
     // if online query the collection of messages, order them by time, descending
     if (isConnected) {
       const queryMessages = query(messagesRef, orderBy('createdAt', 'desc'))
       unsub = onSnapshot(queryMessages, onCollectionUpdate)
-      
+
       return () => unsub()
     } else if (isConnected === false) {
       getMessages()
       navigation.setOptions({ title: 'offline' })
     }
-
-
 
     // sign in
     const unsubUser = auth.onAuthStateChanged(async (user) => {
@@ -130,7 +130,6 @@ const Chat = ({ navigation, route }) => {
       GiftedChat.append(previousMessages, messages)
     )
     addMessage(messages[0])
-
   }, [])
 
   const renderBubble = (props) => {
@@ -149,17 +148,18 @@ const Chat = ({ navigation, route }) => {
   const renderInputToolbar = (props) => {
     if (!isConnected) {
     } else {
-      return (
-        <InputToolbar
-          {...props}
-        />
-      );
+      return <InputToolbar {...props} />
     }
+  }
+
+  const renderCustomActions = (props) => {
+    return <CustomActions {...props} />
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: color }}>
       <GiftedChat
+        renderActions={renderCustomActions}
         renderBubble={renderBubble}
         renderInputToolbar={renderInputToolbar}
         messages={messages}
