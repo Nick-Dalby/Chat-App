@@ -8,6 +8,8 @@ import { signInAnonymously } from 'firebase/auth'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import NetInfo from '@react-native-community/netinfo'
 
+import MapView from 'react-native-maps'
+
 import {
   collection,
   onSnapshot,
@@ -67,10 +69,8 @@ const Chat = ({ navigation, route }) => {
     NetInfo.fetch().then((connection) => {
       if (connection.isConnected) {
         setIsConnected(true)
-        console.log('online')
       } else {
         setIsConnected(false)
-        console.log('offline')
       }
     })
 
@@ -108,6 +108,8 @@ const Chat = ({ navigation, route }) => {
         text: data.text,
         createdAt: data.createdAt.toDate(),
         user: data.user,
+        image: data.image || null,
+        location: data.location || null,
       })
     })
     setMessages(messageArray)
@@ -121,6 +123,8 @@ const Chat = ({ navigation, route }) => {
       text: message.text || '',
       createdAt: message.createdAt,
       user: message.user,
+      image: message.image || null,
+      location: message.location || null,
     })
   }
 
@@ -156,14 +160,36 @@ const Chat = ({ navigation, route }) => {
     return <CustomActions {...props} />
   }
 
+  const renderCustomView = (props) => {
+    const { currentMessage } = props
+    if (currentMessage.location) {
+      return (
+        <View style={{ overflow: 'hidden', borderRadius: 13, margin: 4 }}>
+          <MapView
+            style={{ width: 250, height: 150 }}
+            region={{
+              latitude: currentMessage.location.coords.latitude,
+              longitude: currentMessage.location.coords.longitude,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
+            }}
+          />
+        </View>
+      )
+    }
+    return null
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: color }}>
       <GiftedChat
+        renderCustomView={renderCustomView}
         renderActions={renderCustomActions}
         renderBubble={renderBubble}
         renderInputToolbar={renderInputToolbar}
         messages={messages}
         // showUserAvatar={true}
+        renderUsernameOnMessage={true}
         showAvatarForEveryMessage={true}
         onSend={(messages) => onSend(messages)}
         user={{
