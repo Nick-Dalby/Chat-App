@@ -29,7 +29,7 @@ A React Native mobile chat app 💬
 
 [Sign-up](https://expo.dev/) for **Expo** and
 install their command line tools  
-<sub>refer to the [docs](https://docs.expo.dev/get-started/installation/) for more detail<sub>
+<sub>refer to the [docs](https://docs.expo.dev/get-started/installation/) for more detail<sub>  
 <sub>[watchman](https://facebook.github.io/watchman/docs/install#buildinstall) required for Mac & Linux</sub>
 ```bash
 npm install --global expo-cli
