@@ -49,23 +49,38 @@ const Start = ({ navigation }) => {
           <Text style={{ marginBottom: 15 }}>Choose Background Color:</Text>
           <View style={styles.colorPick}>
             <TouchableOpacity
+              accessible={true}
+              accessibilityLabel="Tap me!"
+              accessibilityHint="Choose chat screen background color"
               style={[{ backgroundColor: colors.a }, styles.colorChange]}
               onPress={() => setColor(colors.a)}
             />
             <TouchableOpacity
+              accessible={true}
+              accessibilityLabel="Tap me!"
+              accessibilityHint="Choose chat screen background color"
               style={[{ backgroundColor: colors.b }, styles.colorChange]}
               onPress={() => setColor(colors.b)}
             />
             <TouchableOpacity
+              accessible={true}
+              accessibilityLabel="Tap me!"
+              accessibilityHint="Choose chat screen background color"
               style={[{ backgroundColor: colors.c }, styles.colorChange]}
               onPress={() => setColor(colors.c)}
             />
             <TouchableOpacity
+              accessible={true}
+              accessibilityLabel="Tap me!"
+              accessibilityHint="Choose chat screen background color"
               style={[{ backgroundColor: colors.d }, styles.colorChange]}
               onPress={() => setColor(colors.d)}
             />
           </View>
           <Pressable
+            accessible={true}
+            accessibilityLabel="Tap me!"
+            accessibilityHint="Enter the chat"
             style={styles.button}
             onPress={() =>
               navigation.navigate('Chat', { name: name, color: color })
