@@ -2,19 +2,23 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { storage } from '../firebase/firebase'
 
-export class CustomActions extends Component { 
+import * as ImagePicker from 'expo-image-picker'
+import { Camera } from 'expo-camera'
+import * as Location from 'expo-location'
 
+export class CustomActions extends Component {
   onActionPress = () => {
     const options = [
-      'Choose from libray',
+      'Choose from library',
       'Take Picture',
       'Send Location',
       'Cancel',
     ]
 
     const cancelButtonIndex = options.length - 1
-    console.log(this.context)
 
     this.context.actionSheet().showActionSheetWithOptions(
       {
@@ -24,14 +28,11 @@ export class CustomActions extends Component {
       async (buttonIndex) => {
         switch (buttonIndex) {
           case 0:
-            console.log('user wants to pick an image')
             return this.pickImage()
           case 1:
-            console.log('user wants to take a photo')
             return this.takePhoto()
           case 2:
-            console.log('user wants to get location')
-          return this.getLocation()
+            return this.getLocation()
           default:
         }
       }
@@ -39,15 +40,69 @@ export class CustomActions extends Component {
   }
 
   pickImage = async () => {
-    console.log('pick image');
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync()
+
+    if (permission.granted) {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'Images',
+      }).catch((error) => console.log(error))
+
+      if (!result.cancelled) {
+        const imageUrl = await this.uploadImageFetch(result.uri);
+        this.props.onSend({ image: imageUrl })
+      }
+    }
   }
-  
+
   takePhoto = async () => {
-    console.log('take photo');
+    const permission = await Camera.requestCameraPermissionsAsync()
+    if (permission.granted) {
+      let result = await ImagePicker.launchCameraAsync().catch((error) =>
+        console.log(error)
+      )
+      if (!result.cancelled) {
+        const imageUrl = await this.uploadImageFetch(result.uri);
+        this.props.onSend({ image: imageUrl })
+      }
+    }
   }
 
   getLocation = async () => {
-    console.log('get location');
+    try {
+      await Location.requestForegroundPermissionsAsync()
+      let result = await Location.getCurrentPositionAsync({})
+      this.props.onSend({
+        location: result,
+      })
+    } catch (error) {
+      console.error('Failed to get location', error)
+    }
+  }
+
+  uploadImageFetch = async (uri) => {
+    const blob = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      xhr.onload = function () {
+        resolve(xhr.response)
+      }
+      xhr.onerror = function (e) {
+        console.log(e)
+        reject(new TypeError('Network request failed'))
+      }
+      xhr.responseType = 'blob'
+      xhr.open('GET', uri, true)
+      xhr.send(null)
+    })
+
+    const imageNameBefore = uri.split('/')
+    const imageName = imageNameBefore[imageNameBefore.length - 1]
+
+    const imagesRef = ref(storage, `images/${imageName}`)
+
+    await uploadBytes(imagesRef, blob)
+    const downloadUrl = await getDownloadURL(imagesRef)
+
+    return downloadUrl
   }
 
   render() {
