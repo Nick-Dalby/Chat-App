@@ -8,7 +8,7 @@ import {
   ImageBackground,
   TouchableOpacity,
   KeyboardAvoidingView,
-  Platform
+  Platform,
 } from 'react-native'
 
 import image from '../assets/Background-Image.png'
@@ -20,6 +20,10 @@ const colors = {
   c: '#8A95A5',
   d: '#B9C6AE',
 }
+
+import { LogBox } from 'react-native'
+
+LogBox.ignoreAllLogs()
 
 const Start = ({ navigation }) => {
   const [name, setName] = useState('')
@@ -33,7 +37,6 @@ const Start = ({ navigation }) => {
       <ImageBackground source={image} resizeMode="cover" style={styles.image}>
         <Text style={styles.title}>Chat-App!</Text>
         <View style={styles.start}>
-
           {/* need to add the user logo in here */}
           <TextInput
             style={styles.input}
@@ -43,7 +46,7 @@ const Start = ({ navigation }) => {
             value={name}
             placeholder="Your Name"
           />
-          <Text style={{marginBottom: 15}}>Choose Background Color:</Text>
+          <Text style={{ marginBottom: 15 }}>Choose Background Color:</Text>
           <View style={styles.colorPick}>
             <TouchableOpacity
               style={[{ backgroundColor: colors.a }, styles.colorChange]}
@@ -98,7 +101,7 @@ const styles = StyleSheet.create({
   start: {
     width: '88%',
     backgroundColor: '#FFFFFF',
-    
+
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingBottom: 20,
@@ -138,7 +141,6 @@ const styles = StyleSheet.create({
     elevation: 3,
     width: '88%',
     marginTop: 20,
-    
   },
   buttonText: {
     fontSize: 16,
